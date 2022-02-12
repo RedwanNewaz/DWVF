@@ -119,6 +119,7 @@ class DynamicWindowPlannerTestCase(unittest.TestCase):
     def test_GoalSecene(self):
 
         valid_plan, traj = run_simulation(self.x, self.goal, self.config)
+
         self.assertTrue(valid_plan, "No valid plan found")
 
 
