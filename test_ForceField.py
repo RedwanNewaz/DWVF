@@ -29,7 +29,7 @@ class ForceFieldTestCase(unittest.TestCase):
         FF = ForceField(goal.tolist(), obstacles.tolist(), start.tolist())
         plot_vector_field(self.area, FF)
         plt.axis('square')
-        plt.show()
+        plt.show(block=False)
 
 
 

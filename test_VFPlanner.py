@@ -81,14 +81,14 @@ class VectorFieldPlannerTestCase(unittest.TestCase):
         valid_plan, traj = get_plan(69, True)
         plt.plot(traj[:, 0], traj[:, 1], '+y')
         plt.axis('square')
-        plt.show()
+        plt.show(block=False)
 
     def test_plotDownwardGoalPlan(self):
         # [yellow up cyan bottom]
         valid_plan, traj = get_plan(5, True)
         plt.plot(traj[:, 0], traj[:, 1], '+y')
         plt.axis('square')
-        plt.show()
+        plt.show(block=False)
 
 
 if __name__ == '__main__':
