@@ -24,6 +24,7 @@ def get_plan(seed, plot=False):
     traj = []
     tic = time()
     valid_plan = False
+    time_budget = 30  # s
     try:
         dx = goal - start
         q = np.arctan2(dx[1], dx[0])
@@ -38,9 +39,9 @@ def get_plan(seed, plot=False):
             # print(f"dist to goal = {diff:.3f}")
             tok = time()
             elapsed = tok - tic
-            if diff < 1 or elapsed > 10:
+            if diff < 1 or elapsed > time_budget:
                 print(f'[+] terminated after {elapsed:.3f} s')
-                valid_plan = elapsed <= 10
+                valid_plan = elapsed <= time_budget
                 break
     except:
         pass

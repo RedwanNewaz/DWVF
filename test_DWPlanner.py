@@ -1,10 +1,7 @@
 from planner.DynamicWindow import RobotType, dwa_control, motion
 import math
 import numpy as np
-
-from sim import ForceField
 from utils.sampler import sampling_locations
-
 from copy import deepcopy
 from time import time
 import unittest
