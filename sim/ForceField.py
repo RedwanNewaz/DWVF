@@ -92,9 +92,10 @@ class ForceField:
                 yield 0
     def __call__(self, r):
         SIGMA = list(self.get_sigma(r, self.obstacles))
+        N = len(self.obstacles)
         repalsion = self.replasive_force_field(r, self.obstacles)
         FG = [sig * self.attractive_force_field(r, self.goal) for sig in SIGMA]
-        FOI = [foi * (1 - sig) for sig, foi in zip(SIGMA, repalsion)]
+        FOI = [foi*N * (1 - sig) for sig, foi in zip(SIGMA, repalsion)]
         F = np.prod(FG, axis=0) + np.sum(FOI, axis=0)
         return F
     def control_input(self, r):

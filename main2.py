@@ -7,12 +7,15 @@ author: Atsushi Sakai (@Atsushi_twi), Göktuğ Karakaşlı
 """
 
 import math
+import time
 from enum import Enum
+import os
 
 import matplotlib.pyplot as plt
 import numpy as np
 from utils.MapParser import MapView
-import asyncio
+from sim import ForceField
+from viz.ForceView import plot_vector_field2
 
 show_animation = True
 
@@ -41,15 +44,15 @@ class Config:
     def __init__(self):
         # robot parameter
         self.max_speed = 1.0  # [m/s]
-        self.min_speed = -0.5  # [m/s]
+        self.min_speed = -0.5 * 0  # [m/s]
         self.max_yaw_rate = 40.0 * math.pi / 180.0  # [rad/s]
         self.max_accel = 0.2  # [m/ss]
         self.max_delta_yaw_rate = 40.0 * math.pi / 180.0  # [rad/ss]
-        self.v_resolution = 0.01  # [m/s]
-        self.yaw_rate_resolution = 0.1 * math.pi / 180.0  # [rad/s]
+        self.v_resolution = 0.02  # [m/s]
+        self.yaw_rate_resolution = 0.2 * math.pi / 180.0  # [rad/s]
         self.dt = 0.1  # [s] Time tick for motion prediction
         self.predict_time = 3.0  # [s]
-        self.to_goal_cost_gain = 0.15
+        self.to_goal_cost_gain = 0.205
         self.speed_cost_gain = 1.0
         self.obstacle_cost_gain = 1.0
         self.robot_stuck_flag_cons = 0.001  # constant to prevent robot stucked
@@ -63,22 +66,7 @@ class Config:
         self.robot_width = 0.5  # [m] for collision check
         self.robot_length = 1.2  # [m] for collision check
         # obstacles [x(m) y(m), ....]
-        self.ob = np.array([[-1, -1],
-                            [0, 2],
-                            [4.0, 2.0],
-                            [5.0, 4.0],
-                            [5.0, 5.0],
-                            [5.0, 6.0],
-                            [5.0, 9.0],
-                            [8.0, 9.0],
-                            [7.0, 9.0],
-                            [8.0, 10.0],
-                            [9.0, 11.0],
-                            [12.0, 13.0],
-                            [12.0, 12.0],
-                            [15.0, 15.0],
-                            [13.0, 13.0]
-                            ])
+        self.ob = None
 
     @property
     def robot_type(self):
@@ -268,12 +256,15 @@ class RobotMotion:
         self.trajectory = np.array(self.x)
         self.dyn_obj = None
         self.predicted_trajectory = []
+        self.__isTerminated = False
 
     def set_dynamic_obj(self, dyn_obj):
         self.dyn_obj = dyn_obj
 
     def run(self):
         # obstacles = np.vstack((self.obstacles.copy(), self.dyn_obj.x[:2]))
+        if self.__isTerminated:
+            return
         obstacles = self.obstacles.copy()
         if len(self.dyn_obj.predicted_trajectory):
             for dynX in self.dyn_obj.predicted_trajectory:
@@ -289,13 +280,15 @@ class RobotMotion:
         plot_arrow(x[0], x[1], x[2])
     def terminated(self):
         dist_to_goal = math.hypot(self.x[0] - self.goal[0], self.x[1] - self.goal[1])
-        return dist_to_goal <= self.config.robot_radius
+        self.__isTerminated = dist_to_goal <= self.config.robot_radius
+        return self.__isTerminated
 
 
 def main(robot_type=RobotType.circle):
     print(__file__ + " start!!")
     map_file = 'test/map02'
     map_obj = MapView(map_file)
+    plt.figure(figsize=(16, 16))
 
     config.robot_type = robot_type
     ob = np.array(map_obj.obstacles)
@@ -315,6 +308,14 @@ def main(robot_type=RobotType.circle):
     robo2.set_dynamic_obj(robo1)
     robo1.set_dynamic_obj(robo2)
 
+    vf_att = [0.5, 5.5]
+    vf_init = [0.5, 9.5]
+    area = [0, map_obj.width + 1]
+    save_dir = f'results/run_{time.time()}'
+    save_dir = save_dir.split('.')[0]
+    os.makedirs(save_dir, exist_ok=True)
+    filename = '%s/%04d.png'
+    sim_time_count = 1
     while True:
         robo1.run()
         robo2.run()
@@ -327,9 +328,16 @@ def main(robot_type=RobotType.circle):
                 lambda event: [exit(0) if event.key == 'escape' else None])
             # map_obj.robot1 = [x[0], x[1]]
             map_obj.plot()
+            vf_repulsive = [robo1.x[:2].tolist(),robo2.x[:2].tolist()]
+            FF = ForceField(vf_att, vf_repulsive, vf_init)
+            plot_vector_field2(area, FF)
+
             robo1.plot()
             robo2.plot()
             plt.pause(0.0001)
+            sim_time_count += 1
+            image = filename % (save_dir, sim_time_count)
+            plt.savefig(image)
 
         # check reaching goal
 
@@ -342,7 +350,9 @@ def main(robot_type=RobotType.circle):
         plt.plot(robo1.trajectory[:, 0], robo1.trajectory[:, 1], "-r")
         plt.plot(robo2.trajectory[:, 0], robo2.trajectory[:, 1], "-g")
         plt.pause(0.0001)
-
+    sim_time_count += 1
+    image = filename % (save_dir, sim_time_count)
+    plt.savefig(image)
     plt.show()
 
 

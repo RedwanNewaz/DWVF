@@ -35,9 +35,12 @@ class MapView(MapParser):
     def __init__(self, map_file):
         super().__init__(map_file)
     def getCircle(self, coord, color):
-        return Circle((coord[0] + 0.5, coord[1] + 0.5), 0.5, color=color)
+        return Circle((coord[0] , coord[1] ), 0.5, color=color)
     def getRect(self, coord):
-        return Rectangle(coord, 1, 1)
+        xy = list(coord)
+        xy[0] -= 0.5
+        xy[1] -= 0.5
+        return Rectangle(xy, 1, 1)
     def plot(self):
         patch_obstacles = PatchCollection([self.getRect(coord) for coord in self.obstacles], facecolors='black')
         patch_sources = PatchCollection([self.getRect(coord) for coord in self.sources], facecolors='yellow')
@@ -51,14 +54,15 @@ class MapView(MapParser):
 
         #show grid
         # Major ticks every 20, minor ticks every 5
-        major_ticks = np.arange(self.height + 1)
-        minor_ticks = np.arange(self.width + 1)
+        # major_ticks = np.arange(-0.5, self.height + 1.5)
+        # minor_ticks = np.arange(-0.5, self.width + 1.5)
+        #
+        # ax.set_xticks(major_ticks)
+        # ax.set_xticks(minor_ticks, minor=True)
+        # ax.set_yticks(major_ticks)
+        # ax.set_yticks(minor_ticks, minor=True)
 
-        ax.set_xticks(major_ticks)
-        ax.set_xticks(minor_ticks, minor=True)
-        ax.set_yticks(major_ticks)
-        ax.set_yticks(minor_ticks, minor=True)
 
-
-        plt.grid()
-        plt.axis([0, self.width, 0, self.height])
+        # plt.grid()
+        plt.axis([-1, self.width + 1, -1, self.height + 1])
+        plt.axis('off')

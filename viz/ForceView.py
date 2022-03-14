@@ -1,6 +1,6 @@
 import matplotlib.pyplot as plt
 import numpy as np
-
+from matplotlib.patches import Rectangle
 
 
 def plot_vector_field(area, FF):
@@ -44,3 +44,44 @@ def plot_vector_field(area, FF):
         ax.add_artist(circle1)
 
 
+def plot_vector_field2(area, FF):
+    ax = plt.gca()
+    # creating a meshgrid for the vector field
+    x, y = np.arange(area[0], area[1]), np.arange(area[0], area[1], 0.5)
+    xv, yv = np.meshgrid(x, y, sparse=False, indexing='ij')
+    nx, ny = len(x), len(y)
+    U, V = np.zeros(xv.shape), np.zeros(xv.shape)
+    for i in range(nx):
+        for j in range(ny):
+            r = [xv[i, j], yv[i, j]]
+            # print ('r',r)
+            F = FF(r)
+            U[i, j] = F[0]
+            V[i, j] = F[1]
+
+    #  showing vector field direction
+    Q = ax.quiver(xv, yv, U, V, units='width',  color='navy')
+    ax.quiverkey(Q,  X=1, Y=1, U=1, label=r'$2 \frac{m}{s}$', labelpos='E',
+                       coordinates='figure')
+
+    rect = Rectangle((area[0]-1, area[0]-1), area[1]+1, area[1]+1,  alpha = 0.4)
+    ax.add_patch(rect)
+
+
+    # # showing obstacles, start and goal locations
+    #
+    # if FF.start:
+    #     x, y = FF.start
+    #     circleS = plt.Circle((x, y), 2, color='yellow')
+    #     ax.add_artist(circleS)
+    #
+    #
+    # x, y = FF.goal
+    # # print(FF.goal)
+    # circle1 = plt.Circle((x, y), 2, color='cyan')
+    # ax.add_artist(circle1)
+    # for i , obs in enumerate(FF.obstacles):
+    #     x, y  = obs
+    #     r = FF.obstacle_radius[i]
+    #     circle1 = plt.Circle((x, y), r, color='r')
+    #     ax.add_artist(circle1)
